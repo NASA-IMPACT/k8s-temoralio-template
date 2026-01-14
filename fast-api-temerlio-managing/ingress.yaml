@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: temperalio-ingress
+  namespace: default
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/health-check: |
+      hs = {}
+      hs.status = "Healthy"
+      return hs
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: dgx-local.fm.odsi.io
+      http:
+        paths:
+          - backend:
+              service:
+                name: temporal-api
+                port:
+                  number: 80
+            path: /jobs/v1
+            pathType: Prefix

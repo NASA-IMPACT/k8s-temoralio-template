@@ -1,0 +1,15 @@
+[project]
+name = "temporalio-base"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "temporalio>=1.21.1",
+]
+
+[tool.uv.workspace]
+members = [
+    "fast-api-temerlio-managing",
+    "worker-deployment",
+]

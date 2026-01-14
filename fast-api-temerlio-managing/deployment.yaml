@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-manager-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-manager-app
+  template:
+    metadata:
+      labels:
+        app: temporal-manager-app
+    spec:
+      containers:
+        - name: temporal-manager-app
+          image: ghcr.io/amarouane-abdelhak/temporalio-manager:1.0.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: TASK_QUEUE
+              value: "fibonnacci-queue"
+            - name: TEMPORAL_SERVER_URL
+              value: "temporal-frontend.temporal:7233"
+
