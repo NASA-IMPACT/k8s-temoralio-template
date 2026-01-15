@@ -11,6 +11,7 @@ RUN uv sync
 
 # Copy worker code
 COPY main.py .
+COPY helpers.py .
 
 # ENV TASK_QUEUE=fibonnacci-queue TEMPORAL_SERVER_URL=localhost:7233
 # Run the worker
