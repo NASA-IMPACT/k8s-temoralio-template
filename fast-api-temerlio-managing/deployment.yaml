@@ -32,13 +32,13 @@ spec:
               memory: "512Mi"
           livenessProbe:
             httpGet:
-              path: /jobs/v1/health    # Add a health endpoint
+              path: /api/predict/v1/jobs/health    # Add a health endpoint
               port: 8000
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /jobs/v1/health
+              path: /api/predict/v1/jobs/health
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 5
