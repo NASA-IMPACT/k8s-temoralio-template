@@ -14,10 +14,17 @@ spec:
     spec:
       containers:
         - name: temporal-fibo-worker-app
-          image: ghcr.io/amarouane-abdelhak/temporalio-fib-worker:1.0.4
+          image: ghcr.io/amarouane-abdelhak/temporalio-fib-worker:1.0.5
           imagePullPolicy: Always
           env:
             - name: TASK_QUEUE
               value: "fibonnacci-queue"
             - name: TEMPORAL_SERVER_URL
               value: "temporal-frontend.temporal:7233"
+          resources:
+            requests:
+              cpu: "500m"      # 0.5 CPU core
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"     # 1 CPU core max
+              memory: "512Mi"

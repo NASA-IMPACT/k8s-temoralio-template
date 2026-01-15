@@ -5,6 +5,7 @@ from temporalio.client import Client
 from temporalio.worker import Worker
 from datetime import timedelta
 from temporalio.common import RetryPolicy
+from temporalio.exceptions import ActivityError
 import os
 import logging
 from dataclasses import dataclass
@@ -41,12 +42,17 @@ async def compute_fib(fib_input: FabInput) -> str:
     Returns:
         str: computed fib.
     """
+    times = 10
 
     if fib_input.n <= 0:
         raise ValueError("Invalid input, rolling back!")
 
     n = fib_input.n
-    return f"Result of fib({n}) is {fib(n)}"
+    results = list()
+    for _ in range(times):
+        results.append(fib(n))
+
+    return f"Results of fib({n}) {times} times is {results}"
 
 
 @workflow.defn
@@ -112,14 +118,18 @@ async def run_worker():
             task_queue=task_queue,
             workflows=[FibWorkflow],
             activities=[compute_fib],
-            max_concurrent_activities=10,
+            max_concurrent_activities=1,
+            max_concurrent_workflow_tasks=1,  # Optional: limit workflow tasks too
+
         )
         
         logger.info(f"✓ Worker initialized, waiting for workflows...")
         
         # Run the worker (this blocks until shutdown)
         await worker_instance.run()
-        
+    except ActivityError as e:
+            workflow.logger.error(f"Activity failed: {e}")
+            raise   
     except Exception as e:
         logger.error(f"✗ Error running worker: {e}", exc_info=True)
         raise
