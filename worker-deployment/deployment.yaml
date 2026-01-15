@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: temporal-fibo-worker-app
-          image: ghcr.io/amarouane-abdelhak/temporalio-fib-worker:1.0.3
+          image: ghcr.io/amarouane-abdelhak/temporalio-fib-worker:1.0.4
           imagePullPolicy: Always
           env:
             - name: TASK_QUEUE

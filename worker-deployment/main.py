@@ -70,8 +70,14 @@ class FibWorkflow:
             result = await workflow.execute_activity(
                     compute_fib,
                     fib_input,
-                    start_to_close_timeout=timedelta(seconds=10),
-                    retry_policy=RetryPolicy(non_retryable_error_types=["ValueError"])
+                    start_to_close_timeout=timedelta(minutes=10),
+                    retry_policy=RetryPolicy(
+                        maximum_attempts=3,
+                        non_retryable_error_types=["ValueError"],
+                        initial_interval=timedelta(seconds=1),
+                        maximum_interval=timedelta(seconds=10),
+                        backoff_coefficient=2.0,
+                    )
                 )
             return {"status": "success", "message": result}
         except Exception as ex:
