@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: temporal-manager-app
-          image: ghcr.io/amarouane-abdelhak/temporalio-manager:1.0.2
+          image: ghcr.io/amarouane-abdelhak/temporalio-manager:1.0.3
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

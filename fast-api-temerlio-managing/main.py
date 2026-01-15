@@ -41,7 +41,7 @@ async def fibo(n: int):
     workflow_id = f"fibbonacci-workflow-{uuid.uuid4()}"
     input_fib = FabInput(n=n, attempts=3)
     handle = await trigger_workflow(
-            temporal_server_url="localhost:7233",
+            temporal_server_url=temporal_server_url,
             workflow_type="FibWorkflow",
             workflow_id=workflow_id,
             input=input_fib,
@@ -49,7 +49,6 @@ async def fibo(n: int):
         )
     return {
         "job_id": workflow_id,
-        "run_id": handle.first_execution_run_id,
         "status": "QUEUED",
         "created_at": datetime.now().isoformat()
         }
