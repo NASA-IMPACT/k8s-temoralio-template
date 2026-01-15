@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-fibo-worker-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-fibo-worker-app
+  template:
+    metadata:
+      labels:
+        app: temporal-fibo-worker-app
+    spec:
+      containers:
+        - name: temporal-fibo-worker-app
+          image: ghcr.io/amarouane-abdelhak/temporalio-fib-worker:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: TASK_QUEUE
+              value: "fibonnacci-queue"
+            - name: TEMPORAL_SERVER_URL
+              value: "temporal-frontend.temporal:7233"

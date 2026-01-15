@@ -83,7 +83,7 @@ async def run_worker():
     """Start the worker to process workflows and activities"""
     
     # Get configuration from environment variables
-    temporal_host = os.getenv("TEMPORAL_SERVER_URL", "http://localhost:7233")
+    temporal_host = os.getenv("TEMPORAL_SERVER_URL")
     task_queue = os.getenv("TASK_QUEUE")
     namespace = os.getenv("TEMPORAL_NAMESPACE", "default")
     
