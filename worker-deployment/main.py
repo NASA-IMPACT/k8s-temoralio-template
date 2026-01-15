@@ -76,7 +76,7 @@ class FibWorkflow:
             result = await workflow.execute_activity(
                     compute_fib,
                     fib_input,
-                    start_to_close_timeout=timedelta(minutes=10),
+                    start_to_close_timeout=timedelta(minutes=1),
                     retry_policy=RetryPolicy(
                         maximum_attempts=3,
                         non_retryable_error_types=["ValueError"],
