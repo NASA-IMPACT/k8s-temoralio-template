@@ -22,5 +22,5 @@ spec:
                 name: temporal-api
                 port:
                   number: 80
-            path: /jobs/v1
+            path: /api/predict/v1/jobs
             pathType: Prefix

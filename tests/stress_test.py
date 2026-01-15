@@ -5,15 +5,12 @@ async def stress_test_via_api(n_workflows: int, fib_n: int = 34):
     """
     Stress test by calling your FastAPI endpoint
     """
-    api_url = "http://your-fastapi-service/trigger-workflow"
+    api_url = f"https://dgx-local.fm.odsi.io:3623/jobs/v1/fibbonacci?n={fib_n}"
     
     async with httpx.AsyncClient() as client:
         tasks = []
-        for i in range(n_workflows):
-            payload = {
-                "workflow_id": f"fib-stress-test-{i}",
-                "n": fib_n
-            }
+        for _ in range(n_workflows):
+            payload = {}
             tasks.append(client.post(api_url, json=payload))
         
         print(f"Submitting {n_workflows} workflows via API...")

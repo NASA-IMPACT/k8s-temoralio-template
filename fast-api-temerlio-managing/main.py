@@ -72,4 +72,4 @@ api_app.include_router(router)
 
 
 # Mount the sub-application
-app.mount("/jobs/v1", api_app)
+app.mount("/api/predict/v1/jobs", api_app)
