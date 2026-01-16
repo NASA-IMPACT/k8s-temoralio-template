@@ -9,11 +9,11 @@ from temporalio.exceptions import ActivityError
 import os
 import logging
 from dataclasses import dataclass
+
 @dataclass
 class FabInput:
     n: int
     attempts: int
-
 
 
 # Configure logging
@@ -25,16 +25,25 @@ logger = logging.getLogger(__name__)
 
 
 def fib(n):
-
     if n <= 1:
         return n
     else:
         return fib(n-1) + fib(n-2)
 
+
+@activity.defn
+async def worker_health_check() -> str:
+    """
+    Quick health check to verify a worker is available.
+    This should complete almost instantly if a worker exists.
+    """
+    return "worker_available"
+
+
 @activity.defn
 async def compute_fib(fib_input: FabInput) -> str:
     """
-    Comput fib
+    Compute fib
 
     Args:
         fib_input (FabInput): Input data for computing fib.
@@ -73,10 +82,22 @@ class FibWorkflow:
             str: Workflow result.
         """
         try:
+            # First, check if a worker is available (5 minute timeout)
+            await workflow.execute_activity(
+                worker_health_check,
+                start_to_close_timeout=timedelta(seconds=30),
+                schedule_to_start_timeout=timedelta(minutes=5),  # Fail if no worker for 5 min
+                retry_policy=RetryPolicy(maximum_attempts=1)
+            )
+            workflow.logger.info("Worker is available, proceeding with computation")
+            
+            # Now execute the actual activity without schedule_to_start_timeout
+            # This allows it to wait indefinitely in queue if workers are busy
             result = await workflow.execute_activity(
                     compute_fib,
                     fib_input,
-                    start_to_close_timeout=timedelta(minutes=10),
+                    start_to_close_timeout=timedelta(minutes=10),  # Time for activity execution
+                    # No schedule_to_start_timeout - can wait in queue indefinitely
                     retry_policy=RetryPolicy(
                         maximum_attempts=1,
                         non_retryable_error_types=["ValueError"],
@@ -87,8 +108,8 @@ class FibWorkflow:
                 )
             return {"status": "success", "message": result}
         except Exception as ex:
+            workflow.logger.error(f"Workflow failed: {ex}")
             return {"status": "error", "message": str(ex)}
-
 
 
 async def run_worker():
@@ -112,24 +133,20 @@ async def run_worker():
         )
         logger.info("✓ Connected to Temporal server")
         
-        # Create worker
+        # Create worker - register the health check activity too
         worker_instance = Worker(
             client,
             task_queue=task_queue,
             workflows=[FibWorkflow],
-            activities=[compute_fib],
+            activities=[compute_fib, worker_health_check],  # Add health check
             max_concurrent_activities=1,
-            max_concurrent_workflow_tasks=1,  # Optional: limit workflow tasks too
-
+            max_concurrent_workflow_tasks=1,
         )
         
         logger.info(f"✓ Worker initialized, waiting for workflows...")
         
         # Run the worker (this blocks until shutdown)
         await worker_instance.run()
-    except ActivityError as e:
-            workflow.logger.error(f"Activity failed: {e}")
-            raise   
     except Exception as e:
         logger.error(f"✗ Error running worker: {e}", exc_info=True)
         raise
@@ -139,6 +156,3 @@ if __name__ == "__main__":
         asyncio.run(run_worker())
     except KeyboardInterrupt:
         print("\nInterrupt received, shutting down...\n")
-
-
-
