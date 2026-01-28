@@ -8,11 +8,9 @@ from temporalio.common import RetryPolicy
 from temporalio.exceptions import ActivityError
 import os
 import logging
-from dataclasses import dataclass
-@dataclass
-class FabInput:
-    n: int
-    attempts: int
+from work import fib, FabInput
+
+
 
 
 
@@ -24,12 +22,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def fib(n):
-
-    if n <= 1:
-        return n
-    else:
-        return fib(n-1) + fib(n-2)
 
 @activity.defn
 async def compute_fib(fib_input: FabInput) -> str:
@@ -42,7 +34,7 @@ async def compute_fib(fib_input: FabInput) -> str:
     Returns:
         str: computed fib.
     """
-    times = 10
+    times = fib_input.times
 
     if fib_input.n <= 0:
         raise ValueError("Invalid input, rolling back!")
@@ -88,7 +80,7 @@ class FibWorkflow:
                 )
             return {"status": "success", "message": result}
         except Exception as ex:
-            return {"status": "error", "message": str(ex)}
+            raise Exception(f"Error: {ex}")
 
 
 

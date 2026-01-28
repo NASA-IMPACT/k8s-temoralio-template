@@ -295,8 +295,14 @@ name = "worker-deployment"
 version = "0.1.0"
 source = { virtual = "worker-deployment" }
 dependencies = [
+    { name = "fastapi" },
     { name = "temporalio" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "temporalio", specifier = ">=1.21.1" }]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.128.0" },
+    { name = "temporalio", specifier = ">=1.21.1" },
+    { name = "uvicorn", specifier = ">=0.40.0" },
+]
