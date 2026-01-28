@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: dgx-local.fm.odsi.io
+    - host: kind.neo.nsstc.uah.edu
       http:
         paths:
           - backend:
