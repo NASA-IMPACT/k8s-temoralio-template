@@ -37,9 +37,8 @@ async def info():
     }
 
 @router.post("/fibbonacci")
-async def fibo(n: int):
+async def fibo(input_fib: FabInput):
     workflow_id = f"fibbonacci-workflow-{uuid.uuid4()}"
-    input_fib = FabInput(n=n, attempts=3)
     handle = await trigger_workflow(
             temporal_server_url=temporal_server_url,
             workflow_type="FibWorkflow",

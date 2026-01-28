@@ -65,4 +65,4 @@ def fibo(n: int):
 @dataclass
 class FabInput:
     n: int
-    attempts: int
+    times: int
