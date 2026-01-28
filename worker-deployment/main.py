@@ -5,7 +5,7 @@ from temporalio.client import Client
 from temporalio.worker import Worker
 from datetime import timedelta
 from temporalio.common import RetryPolicy
-from temporalio.exceptions import ActivityError
+from temporalio.exceptions import ApplicationError
 import os
 import logging
 from work import fib, FabInput
@@ -37,7 +37,7 @@ async def compute_fib(fib_input: FabInput) -> str:
     times = fib_input.times
 
     if fib_input.n <= 0:
-        raise ValueError("Invalid input, rolling back!")
+        raise ApplicationError("Invalid input, rolling back!", non_retryable=True)
 
     n = fib_input.n
     results = list()
@@ -64,23 +64,19 @@ class FibWorkflow:
         Returns:
             str: Workflow result.
         """
-        try:
-            result = await workflow.execute_activity(
-                    compute_fib,
-                    fib_input,
-                    start_to_close_timeout=timedelta(minutes=10),
-                    heartbeat_timeout=timedelta(seconds=30), 
-                    retry_policy=RetryPolicy(
-                        maximum_attempts=1,
-                        non_retryable_error_types=["ValueError"],
-                        initial_interval=timedelta(seconds=1),
-                        maximum_interval=timedelta(seconds=10),
-                        backoff_coefficient=2.0,
-                    )
+        result = await workflow.execute_activity(
+                compute_fib,
+                fib_input,
+                start_to_close_timeout=timedelta(minutes=10),
+                heartbeat_timeout=timedelta(seconds=30), 
+                retry_policy=RetryPolicy(
+                    maximum_attempts=1,
+                    initial_interval=timedelta(seconds=1),
+                    maximum_interval=timedelta(seconds=10),
+                    backoff_coefficient=2.0,
                 )
-            return {"status": "success", "message": result}
-        except Exception as ex:
-            raise Exception(f"Error: {ex}")
+            )
+        return {"status": "success", "message": result}
 
 
 
@@ -112,7 +108,7 @@ async def run_worker():
             workflows=[FibWorkflow],
             activities=[compute_fib],
             max_concurrent_activities=1,
-            max_concurrent_workflow_tasks=1,  # Optional: limit workflow tasks too
+            max_concurrent_workflow_tasks=1,
 
         )
         
@@ -120,9 +116,7 @@ async def run_worker():
         
         # Run the worker (this blocks until shutdown)
         await worker_instance.run()
-    except ActivityError as e:
-            workflow.logger.error(f"Activity failed: {e}")
-            raise   
+        
     except Exception as e:
         logger.error(f"✗ Error running worker: {e}", exc_info=True)
         raise
