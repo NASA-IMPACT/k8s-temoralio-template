@@ -1,0 +1,36 @@
+config:
+  target: "{{ $processEnvironment.TARGET_HOST }}"
+  strictSSL: false
+  tls:
+    rejectUnauthorized: false
+  phases:
+    - name: "Warm up"
+      duration: 60
+      arrivalRate: 1
+    - name: "Gradual ramp up"
+      duration: 120
+      arrivalRate: 10
+      rampTo: 50
+    - name: "Sustain max load"
+      duration: 240
+      arrivalRate: 50
+  payload:
+    path: "payload.csv"
+    order: sequence
+    skipHeader: true
+    delimiter: ","
+    fields:
+      - "n"
+      - "times"
+
+scenarios:
+- name: "calculate fib Models"
+  flow:
+  - post:
+      url: "{{ $processEnvironment.TARGET_PATH }}"
+      headers:
+        accept: "application/json"
+        Content-Type: "application/json"
+      json:
+        n: "{{ n }}"
+        times: "{{ times }}"
