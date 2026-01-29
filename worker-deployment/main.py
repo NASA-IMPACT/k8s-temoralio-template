@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 @activity.defn
-async def compute_fib(fib_input: FabInput) -> str:
+async def compute_fib(fib_input: FabInput) -> dict:
     """
     Comput fib
 
