@@ -9,7 +9,7 @@ from temporalio.exceptions import ApplicationError
 import os
 import logging
 from work import fib, FabInput
-
+import time
 
 
 
@@ -35,6 +35,7 @@ async def compute_fib(fib_input: FabInput) -> str:
         str: computed fib.
     """
     times = fib_input.times
+    start = time.time()
 
     if fib_input.n <= 0:
         raise ApplicationError("Invalid input, rolling back!", non_retryable=True)
@@ -44,7 +45,12 @@ async def compute_fib(fib_input: FabInput) -> str:
     for _ in range(times):
         results.append(fib(n))
 
-    return f"Results of fib({n}) {times} times is {results}"
+    return {
+        "result": f"Results of fib({n}) {times} times is {results}",
+        "took": f"{time.time() - start:.3f} seconds"
+    }
+
+
 
 
 @workflow.defn
