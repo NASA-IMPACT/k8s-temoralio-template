@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from work import fib, FabInput
 import os
-
+import time
 
 
 app = FastAPI(
@@ -33,12 +33,15 @@ async def info():
 
 @router.post("/fibbonacci")
 async def fibo(fib_input: FabInput):
+    start = time.time()
     results = []
     for _ in range(fib_input.times):
         results.append(fib(fib_input.n))
     
-    return f"Results of fib({fib_input.n}) {fib_input.times} times is {results}"
-
+    return {
+        "result": f"Results of fib({fib_input.n}) {fib_input.times} times is {results}",
+        "took": f"{time.time() - start:.3f} seconds"
+    }
 
 api_app.include_router(router)
 
