@@ -4,16 +4,27 @@ config:
   tls:
     rejectUnauthorized: false
   phases:
-    - name: "Warm up"
-      duration: 60
-      arrivalRate: 1
-    - name: "Gradual ramp up"
+    - name: Warm up
       duration: 120
-      arrivalRate: 10
-      rampTo: 50
-    - name: "Sustain max load"
-      duration: 240
+      arrivalRate: 5
+
+    - name: Traffic spike
+      duration: 120
       arrivalRate: 50
+      rampTo: 200
+
+    - name: Sustain heavy load
+      duration: 1800   # 30 minutes
+      arrivalRate: 200
+
+    - name: Sudden spike
+      duration: 60
+      arrivalRate: 500
+
+    - name: Back to heavy
+      duration: 600
+      arrivalRate: 200
+      
   payload:
     path: "payload.csv"
     order: sequence

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: temporal-fibo-worker-app
 spec:
-  replicas: 1
+  replicas: 10
   selector:
     matchLabels:
       app: temporal-fibo-worker-app

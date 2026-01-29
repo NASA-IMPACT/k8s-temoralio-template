@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "set -a; source .env; set +a; artillery run test_fibonacci/config.yaml",
-    "test:temporal": "set -a; source .env; set +a; artillery run test_fibonacci/${ENV}config-temporal.yml"
+    "generate_report:rest": "source env.sh  &&  npm run test:rest -- --output rest_report.json",
+    "generate_report:temporal": "source env.sh  &&  npm run test:temporal -- --output temporal_report.json",
+    "generate_ui_report:rest": "source env.sh  && TARGET_PATH=${TARGET_PATH_REST} artillery run test_fibonacci/config.yaml --record --key ${ARTILLERY_API_KEY}",
+    "generate_ui_report:queue": "source env.sh  && TARGET_PATH=${TARGET_PATH_QUEUE} artillery run test_fibonacci/config.yaml --record --key ${ARTILLERY_API_KEY}"
 
   },
   "keywords": [],
