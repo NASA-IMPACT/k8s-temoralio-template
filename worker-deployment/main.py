@@ -108,7 +108,7 @@ async def run_worker():
             workflows=[FibWorkflow],
             activities=[compute_fib],
             max_concurrent_activities=1,
-            max_concurrent_workflow_tasks=1,
+            # max_concurrent_workflow_tasks=1,
 
         )
         
