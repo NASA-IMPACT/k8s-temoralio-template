@@ -14,8 +14,8 @@ config:
       rampTo: 100
 
     - name: Sustain heavy load
-      duration: 1800   # 30 minutes
-      arrivalRate: 200
+      duration: 300   # 5 minutes
+      arrivalRate: 100
 
     # - name: Sudden spike
     #   duration: 60
