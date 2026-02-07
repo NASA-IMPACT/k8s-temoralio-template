@@ -1,15 +1,14 @@
 import asyncio
 
-from temporalio import activity, workflow
 from temporalio.client import Client
 from temporalio.worker import Worker
-from datetime import timedelta
-from temporalio.common import RetryPolicy
-from temporalio.exceptions import ApplicationError
+from temporalio.worker import SharedStateManager
+from fib_workflow import FibWorkflow
+from fib_activity import compute_fib
+import multiprocessing
 import os
 import logging
-from work import fib, FabInput
-import time
+from concurrent.futures import ProcessPoolExecutor
 
 
 
@@ -22,71 +21,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
-@activity.defn
-async def compute_fib(fib_input: FabInput) -> dict:
-    """
-    Comput fib
-
-    Args:
-        fib_input (FabInput): Input data for computing fib.
-
-    Returns:
-        str: computed fib.
-    """
-    print(f"=====START ACTIVITY at {time.strftime('%X %x %Z')}======")
-    times = fib_input.times
-    start = time.time()
-
-    if fib_input.n <= 0:
-        raise ApplicationError("Invalid input, rolling back!", non_retryable=True)
-
-    n = fib_input.n
-    results = list()
-    for _ in range(times):
-        results.append(fib(n))
-    print(f"=====END ACTIVITY at {time.strftime('%X %x %Z')}======")
-    return {
-        "result": f"Results of fib({n}) {times} times is {results}",
-        "took": f"{time.time() - start:.3f} seconds"
-    }
-
-
-
-
-@workflow.defn
-class FibWorkflow:
-    """
-    Workflow class for computing fib.
-    """
-
-    @workflow.run
-    async def run(self, fib_input: FabInput):
-        """
-        Executes the fib compute workflow.
-
-        Args:
-            fib_input (FabInput): Input data for the workflow.
-
-        Returns:
-            str: Workflow result.
-        """
-        print(f"=====START WORKFLOW at {time.strftime('%X %x %Z')}======")
-
-        result = await workflow.execute_activity(
-                compute_fib,
-                fib_input,
-                start_to_close_timeout=timedelta(minutes=10),
-                heartbeat_timeout=timedelta(seconds=30), 
-                retry_policy=RetryPolicy(
-                    maximum_attempts=1,
-                    initial_interval=timedelta(seconds=1),
-                    maximum_interval=timedelta(seconds=10),
-                    backoff_coefficient=2.0,
-                )
-            )
-        print(f"=====END WORKFLOW at {time.strftime('%X %x %Z')}======")
-        return {"status": "success", "message": result}
 
 
 
@@ -104,32 +38,34 @@ async def run_worker():
     logger.info(f"  Namespace: {namespace}")
     
     try:
-        # Connect to Temporal server
-        client = await Client.connect(
-            temporal_host,
-            namespace=namespace,
-        )
-        logger.info("✓ Connected to Temporal server")
-        tasks_count = int(os.getenv("TEMPORAL_WORKFLOWS_COUNT"))
-        # Create worker
-        worker_instance = Worker(
-            client,
-            task_queue=task_queue,
-            workflows=[FibWorkflow],
-            activities=[compute_fib],
-            #max_concurrent_activities=tasks_count,
-            max_concurrent_workflow_tasks=tasks_count,
+        client = await Client.connect(temporal_host, namespace=namespace)
+        tasks_count = int(os.getenv("TEMPORAL_WORKFLOWS_COUNT", "2"))
 
-        )
-        
-        logger.info(f"✓ Worker initialized, waiting for workflows...")
-        
-        # Run the worker (this blocks until shutdown)
-        await worker_instance.run()
-        
+        # 1. Create a standard Python multiprocessing manager
+        # 2. Use it to initialize the Temporal SharedStateManager
+        with multiprocessing.Manager() as multiprocessing_manager:
+            state_manager = SharedStateManager.create_from_multiprocessing(multiprocessing_manager)
+
+            with ProcessPoolExecutor(max_workers=tasks_count) as executor:
+                worker_instance = Worker(
+                    client,
+                    task_queue=task_queue,
+                    workflows=[FibWorkflow],
+                    activities=[compute_fib],
+                    activity_executor=executor,
+                    shared_state_manager=state_manager, 
+                    max_concurrent_activities=tasks_count,
+                    max_concurrent_workflow_tasks=tasks_count,
+                )
+                
+                logger.info("✓ Worker initialized with ProcessPoolExecutor and SharedStateManager")
+                await worker_instance.run()
+            
     except Exception as e:
-        logger.error(f"✗ Error running worker: {e}", exc_info=True)
+        logger.error(f"✗ Error: {e}", exc_info=True)
         raise
+        
+
 
 if __name__ == "__main__":
     try:

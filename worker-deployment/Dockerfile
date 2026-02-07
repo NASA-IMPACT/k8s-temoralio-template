@@ -10,14 +10,11 @@ COPY pyproject.toml .
 # Install dependencies
 RUN uv sync
 
-COPY fastapi_run.py .
-
-COPY work.py .
 
 COPY entrypoint.sh .
 
 # Copy worker code
-COPY main.py .
+COPY *.py .
 
 # ENV TASK_QUEUE=fibonnacci-queue TEMPORAL_SERVER_URL=localhost:7233
 
