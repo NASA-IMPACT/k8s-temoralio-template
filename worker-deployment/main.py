@@ -34,6 +34,7 @@ async def compute_fib(fib_input: FabInput) -> dict:
     Returns:
         str: computed fib.
     """
+    print(f"=====START ACTIVITY at {time.strftime('%X %x %Z')}======")
     times = fib_input.times
     start = time.time()
 
@@ -44,7 +45,7 @@ async def compute_fib(fib_input: FabInput) -> dict:
     results = list()
     for _ in range(times):
         results.append(fib(n))
-
+    print(f"=====END ACTIVITY at {time.strftime('%X %x %Z')}======")
     return {
         "result": f"Results of fib({n}) {times} times is {results}",
         "took": f"{time.time() - start:.3f} seconds"
@@ -70,6 +71,8 @@ class FibWorkflow:
         Returns:
             str: Workflow result.
         """
+        print(f"=====START WORKFLOW at {time.strftime('%X %x %Z')}======")
+
         result = await workflow.execute_activity(
                 compute_fib,
                 fib_input,
@@ -82,6 +85,7 @@ class FibWorkflow:
                     backoff_coefficient=2.0,
                 )
             )
+        print(f"=====END WORKFLOW at {time.strftime('%X %x %Z')}======")
         return {"status": "success", "message": result}
 
 
