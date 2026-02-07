@@ -54,7 +54,7 @@ async def run_worker():
                     activities=[compute_fib],
                     activity_executor=executor,
                     shared_state_manager=state_manager, 
-                    max_concurrent_activities=tasks_count,
+                    #max_concurrent_activities=tasks_count,
                     max_concurrent_workflow_tasks=tasks_count,
                 )
                 
