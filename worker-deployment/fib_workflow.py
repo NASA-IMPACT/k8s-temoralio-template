@@ -3,8 +3,7 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 from work import fib, FabInput
 
-# Only import the activity definition
-from fib_activity import compute_fib
+
 
 @workflow.defn
 class FibWorkflow:
@@ -28,7 +27,7 @@ class FibWorkflow:
         
 
         result = await workflow.execute_activity(
-                compute_fib,
+                "compute_fib",
                 fib_input,
                 start_to_close_timeout=timedelta(minutes=10),
                 heartbeat_timeout=timedelta(seconds=30), 

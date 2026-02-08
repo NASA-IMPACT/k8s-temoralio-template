@@ -2,10 +2,8 @@ import asyncio
 
 from temporalio.client import Client
 from temporalio.worker import Worker
-from temporalio.worker import SharedStateManager
 from fib_workflow import FibWorkflow
 from fib_activity import compute_fib
-import multiprocessing
 import os
 import logging
 from concurrent.futures import ProcessPoolExecutor
@@ -33,34 +31,35 @@ async def run_worker():
     namespace = os.getenv("TEMPORAL_NAMESPACE", "default")
     
     logger.info(f"Starting Temporal Worker...")
-    logger.info(f"  Temporal Host: {temporal_host}")
-    logger.info(f"  Task Queue: {task_queue}")
-    logger.info(f"  Namespace: {namespace}")
-    
+    logger.info(f"Temporal Host: {temporal_host}")
+    logger.info(f"Task Queue: {task_queue}")
+    logger.info(f"Namespace: {namespace}")
+    workflows_count = int(os.getenv("TEMPORAL_WORKFLOWS_COUNT", "2"))
+    logger.info(f"Workflows in parallele: {workflows_count}")
     try:
-        client = await Client.connect(temporal_host, namespace=namespace)
-        tasks_count = int(os.getenv("TEMPORAL_WORKFLOWS_COUNT", "2"))
+        # Connect to Temporal server
+        client = await Client.connect(
+            temporal_host,
+            namespace=namespace,
+        )
+        logger.info("✓ Connected to Temporal server")
+        
+        # Create worker
+        worker_instance = Worker(
+            client,
+            task_queue=task_queue,
+            workflows=[FibWorkflow],
+            activities=[compute_fib],
+            #max_concurrent_activities=1,
+            max_concurrent_workflow_tasks=workflows_count,
 
-        # 1. Create a standard Python multiprocessing manager
-        # 2. Use it to initialize the Temporal SharedStateManager
-        with multiprocessing.Manager() as multiprocessing_manager:
-            state_manager = SharedStateManager.create_from_multiprocessing(multiprocessing_manager)
-
-            with ProcessPoolExecutor(max_workers=tasks_count) as executor:
-                worker_instance = Worker(
-                    client,
-                    task_queue=task_queue,
-                    workflows=[FibWorkflow],
-                    activities=[compute_fib],
-                    activity_executor=executor,
-                    shared_state_manager=state_manager, 
-                    #max_concurrent_activities=tasks_count,
-                    max_concurrent_workflow_tasks=tasks_count,
-                )
-                
-                logger.info("✓ Worker initialized with ProcessPoolExecutor and SharedStateManager")
-                await worker_instance.run()
-            
+        )
+        
+        logger.info(f"✓ Worker initialized, waiting for workflows...")
+        
+        # Run the worker (this blocks until shutdown)
+        await worker_instance.run()
+        
     except Exception as e:
         logger.error(f"✗ Error: {e}", exc_info=True)
         raise
