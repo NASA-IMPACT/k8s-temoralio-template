@@ -22,7 +22,7 @@ spec:
             - name: TEMPORAL_SERVER_URL
               value: "temporal-frontend.temporal:7233"
             - name: TEMPORAL_WORKFLOWS_COUNT
-              value: "1"
+              value: "14"
           # resources:
           #   requests:
           #     cpu: "500m"      # 0.5 CPU core
