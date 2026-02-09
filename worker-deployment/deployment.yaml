@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: temporal-fibo-worker-app
 spec:
-  replicas: 1
+  replicas: 14
   selector:
     matchLabels:
       app: temporal-fibo-worker-app
@@ -22,7 +22,7 @@ spec:
             - name: TEMPORAL_SERVER_URL
               value: "temporal-frontend.temporal:7233"
             - name: TEMPORAL_WORKFLOWS_COUNT
-              value: "14"
+              value: "1"
           resources:
             requests:
               cpu: "500m"      # 0.5 CPU core
