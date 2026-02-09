@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: temporal-fibo-worker-app
 spec:
-  replicas: 14
+  replicas: 1
   selector:
     matchLabels:
       app: temporal-fibo-worker-app
@@ -23,10 +23,10 @@ spec:
               value: "temporal-frontend.temporal:7233"
             - name: TEMPORAL_WORKFLOWS_COUNT
               value: "1"
-          resources:
-            requests:
-              cpu: "500m"      # 0.5 CPU core
-              memory: "256Mi"
-            limits:
-              cpu: "1000m"     # 1 CPU core max
-              memory: "512Mi"
+          # resources:
+          #   requests:
+          #     cpu: "500m"      # 0.5 CPU core
+          #     memory: "256Mi"
+          #   limits:
+          #     cpu: "1000m"     # 1 CPU core max
+          #     memory: "512Mi"
