@@ -4,23 +4,25 @@ from work import comput_fib_n_times, FabInput
 from temporalio.exceptions import ApplicationError
 import httpx
 import asyncio
+import os
 
 
+from concurrent.futures import ProcessPoolExecutor
 
-async def _compute_fib(
-    fib_input: FabInput
-) -> list:
-    """
-    Async wrapper that runs the synchronous infer() in a threadpool so
-    multiple /invocations requests can be handled concurrently.
-    """
+# Create a persistent process pool (don't create it inside the function)
+process_pool = ProcessPoolExecutor(max_workers=os.cpu_count())
+
+async def _compute_fib(fib_input: FabInput) -> list:
     loop = asyncio.get_running_loop()
+    # Offload to a separate PROCESS, not a thread
     return await loop.run_in_executor(
-        None,
-        comput_fib_n_times,
-        fib_input.n,
+        process_pool, 
+        comput_fib_n_times, 
+        fib_input.n, 
         fib_input.times
     )
+
+
 
 
 async def heartbeat_loop():
