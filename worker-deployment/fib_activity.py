@@ -22,22 +22,33 @@ async def _compute_fib(
         fib_input.times
     )
 
+
+async def heartbeat_loop():
+    """Sends a heartbeat to Temporal every 30 seconds."""
+    while True:
+        try:
+            activity.record_heartbeat("Computing Fibonacci...")
+            await asyncio.sleep(30) 
+        except asyncio.CancelledError:
+            # Task was cancelled by the 'finally' block, exit gracefully
+            break
+
 @activity.defn
-async def compute_fib(fib_input: FabInput) -> dict:
-    """
-    Comput fib
-
-    Args:
-        fib_input (FabInput): Input data for computing fib.
-
-    Returns:
-        str: computed fib.
-    """
-    activity.logger.info(f"=====START ACTIVITY======")
+async def compute_fib(fib_input: FabInput) -> list:
+    activity.logger.info("===== START ACTIVITY =====")
 
     if fib_input.n <= 0:
-        raise ApplicationError("Invalid input, rolling back!", non_retryable=True)
-    results = await _compute_fib(fib_input)
-    activity.logger.info(f"=====END ACTIVITY======")
-    return results
+        raise ApplicationError("Invalid input", non_retryable=True)
+
+    # 1. Create a background task that sends heartbeats every 30 seconds
+    heartbeat_task = asyncio.create_task(heartbeat_loop())
+
+    try:
+        # 2. Run the heavy computation in the threadpool
+        results = await _compute_fib(fib_input)
+        return results
+    finally:
+        # 3. Always stop the heartbeat loop when the work is done or cancelled
+        heartbeat_task.cancel()
+        activity.logger.info("===== END ACTIVITY =====")
 
